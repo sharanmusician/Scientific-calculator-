@@ -3,216 +3,248 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aethercore | Precision Calculator</title>
+    <title>Aethercore Interactive | Omega-Phase Calc</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.js"></script>
     <style>
         :root {
-            --bg-grad: radial-gradient(circle at center, #1e2024 0%, #0f1012 100%);
-            --panel-bg: #25282e;
-            --display-bg: #141619;
-            --accent-blue: #409eff;
-            --text-main: #e0e0e0;
-            --text-dim: #6c757d;
-            --btn-hover: #32363d;
+            --bg: #0a0b0d;
+            --surface: #16181d;
+            --accent: #00f2ff;
+            --text: #ffffff;
+            --btn-num: #22252c;
+            --btn-fn: #1c1f26;
+            --btn-op: #2d313a;
         }
 
         body {
-            background: var(--bg-grad);
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            color: var(--text-main);
         }
 
-        /* Branding Style: Subtle & Premium */
-        .brand-header {
-            text-align: left;
-            margin-bottom: 15px;
-            padding-left: 5px;
-        }
-
-        .brand-header h1 {
-            font-size: 0.75rem;
-            letter-spacing: 0.25rem;
-            text-transform: uppercase;
-            color: var(--text-dim);
-            margin: 0;
-            font-weight: 400;
-            opacity: 0.7;
-        }
-
-        .brand-header span {
-            color: var(--accent-blue);
-            font-weight: 700;
-        }
-
-        .calculator {
-            background: var(--panel-bg);
-            padding: 28px;
-            border-radius: 24px;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.6), inset 0 1px 1px rgba(255,255,255,0.05);
-            width: 380px;
-            border: 1px solid rgba(255,255,255,0.03);
-        }
-
-        .display-container {
-            background: var(--display-bg);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 25px;
-            box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);
+        .calc-container {
+            width: 420px;
+            background: var(--surface);
+            padding: 30px;
+            border-radius: 32px;
+            box-shadow: 0 40px 100px rgba(0,0,0,0.8), 0 0 20px rgba(0,242,255,0.05);
             border: 1px solid rgba(255,255,255,0.05);
         }
 
-        .display {
+        /* Subtle Aethercore Branding */
+        .branding {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 0 5px;
+        }
+
+        .branding h1 {
+            font-size: 10px;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.3);
+            margin: 0;
+        }
+
+        .status-led {
+            width: 6px;
+            height: 6px;
+            background: var(--accent);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--accent);
+        }
+
+        .screen-area {
+            background: #000;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        #history {
+            display: block;
+            height: 20px;
+            color: #555;
+            text-align: right;
+            font-size: 14px;
+            font-family: 'Consolas', monospace;
+            overflow: hidden;
+        }
+
+        #display {
             width: 100%;
             background: transparent;
             border: none;
+            color: var(--accent);
+            font-size: 32px;
             text-align: right;
-            color: var(--accent-blue);
-            font-size: 2rem;
             font-family: 'Consolas', monospace;
             outline: none;
+            margin-top: 5px;
         }
 
-        .buttons {
+        .grid {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
-            gap: 12px;
+            gap: 10px;
         }
 
         button {
-            height: 52px;
+            height: 50px;
             border: none;
-            border-radius: 10px;
-            background: #2e323a;
-            color: var(--text-main);
-            font-size: 0.95rem;
-            font-weight: 500;
+            border-radius: 12px;
+            background: var(--btn-num);
+            color: #fff;
+            font-size: 13px;
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 0 #1a1c20;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         button:hover {
-            background: var(--btn-hover);
-            transform: translateY(-1px);
+            background: #323741;
+            transform: translateY(-2px);
         }
 
-        button:active {
-            transform: translateY(2px);
-            box-shadow: none;
+        button:active { transform: translateY(1px); }
+
+        .fn { background: var(--btn-fn); color: #888; }
+        .op { background: var(--btn-op); color: var(--accent); }
+        .ac { color: #ff4d4d; }
+        .exe { 
+            background: linear-gradient(135deg, #00d2ff 0%, #00f2ff 100%);
+            color: #000;
+            grid-column: span 2;
         }
 
-        .operator { color: var(--accent-blue); background: #2a313d; }
-        .function { color: #9ba3af; font-size: 0.8rem; background: #282c34; }
-        .equals { background: var(--accent-blue); color: white; box-shadow: 0 4px 0 #286cb0; }
-        .clear { color: #ff6b6b; }
-
-        .footer-tag {
-            margin-top: 20px;
-            font-size: 0.6rem;
+        .mode-toggle {
+            font-size: 9px;
+            color: #444;
             text-align: center;
-            color: var(--text-dim);
-            text-transform: uppercase;
+            margin-top: 15px;
             letter-spacing: 1px;
         }
     </style>
 </head>
 <body>
 
-<div class="calculator">
-    <div class="brand-header">
-        <h1>Aethercore <span>Interactive</span></h1>
+<div class="calc-container">
+    <div class="branding">
+        <h1>Aethercore Interactive</h1>
+        <div class="status-led"></div>
     </div>
 
-    <div class="display-container">
-        <input type="text" id="result" class="display" readonly value="0">
-    </div>
-    
-    <div class="buttons">
-        <button class="function" onclick="push('Math.sin(')">SIN</button>
-        <button class="function" onclick="push('Math.cos(')">COS</button>
-        <button class="function" onclick="push('Math.tan(')">TAN</button>
-        <button class="function" onclick="push('Math.log10(')">LOG</button>
-        <button class="function" onclick="push('Math.log(')">LN</button>
-
-        <button class="function" onclick="push('Math.PI')">π</button>
-        <button class="function" onclick="push('Math.E')">e</button>
-        <button class="function" onclick="push('**')">^</button>
-        <button class="function" onclick="push('Math.sqrt(')">√</button>
-        <button class="function" onclick="factorial()">x!</button>
-
-        <button class="clear" onclick="clearDisplay()">AC</button>
-        <button onclick="backspace()">DEL</button>
-        <button onclick="push('(')">(</button>
-        <button onclick="push(')')">)</button>
-        <button class="operator" onclick="push('/')">÷</button>
-
-        <button onclick="push('7')">7</button>
-        <button onclick="push('8')">8</button>
-        <button onclick="push('9')">9</button>
-        <button class="operator" onclick="push('*')">×</button>
-        <button class="function" onclick="push('Math.asin(')">ASIN</button>
-
-        <button onclick="push('4')">4</button>
-        <button onclick="push('5')">5</button>
-        <button onclick="push('6')">6</button>
-        <button class="operator" onclick="push('-')">−</button>
-        <button class="function" onclick="push('Math.acos(')">ACOS</button>
-
-        <button onclick="push('1')">1</button>
-        <button onclick="push('2')">2</button>
-        <button onclick="push('3')">3</button>
-        <button class="operator" onclick="push('+')">+</button>
-        <button class="function" onclick="push('Math.atan(')">ATAN</button>
-
-        <button onclick="push('0')">0</button>
-        <button onclick="push('.')">.</button>
-        <button onclick="push('Math.exp(')">EXP</button>
-        <button class="equals" onclick="calculate()" style="grid-column: span 2;">EXE</button>
+    <div class="screen-area">
+        <span id="history"></span>
+        <input type="text" id="display" value="0" readonly>
     </div>
 
-    <div class="footer-tag">Industrial Grade Core v4.2</div>
+    <div class="grid">
+        <button class="fn" onclick="input('sin(')">SIN</button>
+        <button class="fn" onclick="input('cos(')">COS</button>
+        <button class="fn" onclick="input('tan(')">TAN</button>
+        <button class="fn" onclick="input('log(')">LOG</button>
+        <button class="fn" onclick="input('ln(')">LN</button>
+
+        <button class="fn" onclick="input('asin(')">ASN</button>
+        <button class="fn" onclick="input('acos(')">ACS</button>
+        <button class="fn" onclick="input('atan(')">ATN</button>
+        <button class="fn" onclick="input('sqrt(')">SQRT</button>
+        <button class="fn" onclick="input('^')">POW</button>
+
+        <button class="ac" onclick="clearAll()">AC</button>
+        <button class="op" onclick="backspace()">DEL</button>
+        <button class="op" onclick="input('(')">(</button>
+        <button class="op" onclick="input(')')">)</button>
+        <button class="op" onclick="input('/')">÷</button>
+
+        <button onclick="input('7')">7</button>
+        <button onclick="input('8')">8</button>
+        <button onclick="input('9')">9</button>
+        <button class="op" onclick="input('*')">×</button>
+        <button class="fn" onclick="input('PI')">π</button>
+
+        <button onclick="input('4')">4</button>
+        <button onclick="input('5')">5</button>
+        <button onclick="input('6')">6</button>
+        <button class="op" onclick="input('-')">-</button>
+        <button class="fn" onclick="input('e')">e</button>
+
+        <button onclick="input('1')">1</button>
+        <button onclick="input('2')">2</button>
+        <button onclick="input('3')">3</button>
+        <button class="op" onclick="input('+')">+</button>
+        <button class="fn" onclick="input('!')">x!</button>
+
+        <button onclick="input('0')">0</button>
+        <button onclick="input('.')">.</button>
+        <button onclick="input('mod')">MOD</button>
+        <button class="exe" onclick="solve()">EXECUTE</button>
+    </div>
+
+    <div class="mode-toggle">CORE VERSION: 4.0.2 // RADIAN MODE ACTIVE</div>
 </div>
 
 <script>
-    const display = document.getElementById('result');
+    const display = document.getElementById('display');
+    const history = document.getElementById('history');
+    let isNewCalculation = false;
 
-    function push(val) {
-        if (display.value === '0') display.value = '';
-        display.value += val;
-    }
-
-    function clearDisplay() {
-        display.value = '0';
-    }
-
-    function backspace() {
-        display.value = display.value.length > 1 ? display.value.slice(0, -1) : '0';
-    }
-
-    function calculate() {
-        try {
-            // Evaluates the string as JS math
-            let result = eval(display.value);
-            // Limit precision to 8 decimal places for professional look
-            display.value = Number.isInteger(result) ? result : parseFloat(result.toFixed(8));
-        } catch (e) {
-            display.value = "SYNTAX ERROR";
-            setTimeout(clearDisplay, 1500);
+    function input(val) {
+        if (display.value === '0' || isNewCalculation) {
+            display.value = val;
+            isNewCalculation = false;
+        } else {
+            display.value += val;
         }
     }
 
-    function factorial() {
-        let n = parseInt(display.value);
-        if (n < 0) return display.value = "NAN ERROR";
-        let res = 1;
-        for (let i = 2; i <= n; i++) res *= i;
-        display.value = res;
+    function clearAll() {
+        display.value = '0';
+        history.innerText = '';
     }
+
+    function backspace() {
+        display.value = display.value.slice(0, -1);
+        if (display.value === '') display.value = '0';
+    }
+
+    function solve() {
+        try {
+            let expr = display.value;
+            // Converting display symbols to mathjs symbols
+            let mathExpr = expr.replace(/×/g, '*').replace(/÷/g, '/');
+            
+            const result = math.evaluate(mathExpr);
+            
+            history.innerText = expr + ' =';
+            display.value = math.format(result, { precision: 14 });
+            isNewCalculation = true;
+        } catch (err) {
+            display.value = "SYNTAX ERROR";
+            setTimeout(clearAll, 1500);
+        }
+    }
+
+    // Keyboard support for professional use
+    document.addEventListener('keydown', (e) => {
+        if (e.key >= '0' && e.key <= '9') input(e.key);
+        if (e.key === '+') input('+');
+        if (e.key === '-') input('-');
+        if (e.key === '*') input('*');
+        if (e.key === '/') input('/');
+        if (e.key === 'Enter') solve();
+        if (e.key === 'Backspace') backspace();
+        if (e.key === 'Escape') clearAll();
+    });
 </script>
 
 </body>
