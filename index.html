@@ -3,247 +3,217 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aethercore Interactive | Omega-Phase Calc</title>
+    <title>Aethercore | FX-PRO Scientific</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.js"></script>
     <style>
         :root {
-            --bg: #0a0b0d;
-            --surface: #16181d;
-            --accent: #00f2ff;
-            --text: #ffffff;
-            --btn-num: #22252c;
-            --btn-fn: #1c1f26;
-            --btn-op: #2d313a;
+            --c-body: #2c2e31;
+            --c-screen: #9fb3a0; /* Classic Casio LCD Tint */
+            --c-btn-num: #e5e5e5;
+            --c-btn-dark: #3a3d42;
+            --c-btn-accent: #d35400; /* AC/DEL Button */
+            --c-shift: #f1c40f;
+            --c-alpha: #e74c3c;
         }
 
         body {
-            background-color: var(--bg);
-            color: var(--text);
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #1a1a1a;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
+            height: 100vh;
+            font-family: 'Arial', sans-serif;
             margin: 0;
         }
 
-        .calc-container {
-            width: 420px;
-            background: var(--surface);
-            padding: 30px;
-            border-radius: 32px;
-            box-shadow: 0 40px 100px rgba(0,0,0,0.8), 0 0 20px rgba(0,242,255,0.05);
-            border: 1px solid rgba(255,255,255,0.05);
+        .calculator {
+            background: var(--c-body);
+            width: 380px;
+            padding: 25px;
+            border-radius: 20px 20px 50px 50px;
+            box-shadow: 0 30px 0 #151515, 0 50px 100px rgba(0,0,0,0.7);
+            position: relative;
         }
 
-        /* Subtle Aethercore Branding */
-        .branding {
+        /* Branding */
+        .brand-zone {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
-            padding: 0 5px;
+            color: #fff;
+            margin-bottom: 10px;
+        }
+        .brand-zone h2 { font-size: 14px; margin: 0; letter-spacing: 1px; opacity: 0.8; }
+        .brand-zone .model { font-size: 10px; color: #aaa; }
+
+        /* LCD Screen */
+        .screen {
+            background: var(--c-screen);
+            height: 100px;
+            border-radius: 5px;
+            border: 4px solid #111;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.3);
+            padding: 10px;
+            color: #1a1a1a;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            font-family: 'Courier New', Courier, monospace;
         }
 
-        .branding h1 {
-            font-size: 10px;
-            letter-spacing: 4px;
-            text-transform: uppercase;
-            color: rgba(255,255,255,0.3);
-            margin: 0;
-        }
+        #input-line { font-size: 18px; word-wrap: break-word; }
+        #output-line { font-size: 26px; text-align: right; font-weight: bold; }
 
-        .status-led {
-            width: 6px;
-            height: 6px;
-            background: var(--accent);
-            border-radius: 50%;
-            box-shadow: 0 0 8px var(--accent);
-        }
-
-        .screen-area {
-            background: #000;
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 25px;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-
-        #history {
-            display: block;
-            height: 20px;
-            color: #555;
-            text-align: right;
-            font-size: 14px;
-            font-family: 'Consolas', monospace;
-            overflow: hidden;
-        }
-
-        #display {
-            width: 100%;
-            background: transparent;
-            border: none;
-            color: var(--accent);
-            font-size: 32px;
-            text-align: right;
-            font-family: 'Consolas', monospace;
-            outline: none;
-            margin-top: 5px;
-        }
-
+        /* Button Grid */
         .grid {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
             gap: 10px;
+            margin-top: 20px;
         }
 
         button {
-            height: 50px;
+            height: 38px;
+            border-radius: 6px;
             border: none;
-            border-radius: 12px;
-            background: var(--btn-num);
-            color: #fff;
-            font-size: 13px;
-            font-weight: 600;
+            font-weight: bold;
+            font-size: 12px;
             cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 3px 0 #111;
+            transition: 0.1s;
+            position: relative;
         }
 
-        button:hover {
-            background: #323741;
-            transform: translateY(-2px);
+        button:active { transform: translateY(2px); box-shadow: 0 1px 0 #111; }
+
+        /* Color Coding */
+        .num { background: var(--c-btn-num); color: #222; font-size: 16px; }
+        .fn { background: var(--c-btn-dark); color: #fff; font-size: 10px; }
+        .action { background: var(--c-btn-accent); color: #fff; }
+        .special { background: #555; color: #fff; }
+
+        /* Label styling (the text above buttons) */
+        .btn-wrap { position: relative; padding-top: 14px; }
+        .shift-label {
+            position: absolute; top: 0; left: 0;
+            color: var(--c-shift); font-size: 9px; width: 100%; text-align: center;
         }
 
-        button:active { transform: translateY(1px); }
-
-        .fn { background: var(--btn-fn); color: #888; }
-        .op { background: var(--btn-op); color: var(--accent); }
-        .ac { color: #ff4d4d; }
-        .exe { 
-            background: linear-gradient(135deg, #00d2ff 0%, #00f2ff 100%);
-            color: #000;
-            grid-column: span 2;
-        }
-
-        .mode-toggle {
-            font-size: 9px;
-            color: #444;
-            text-align: center;
-            margin-top: 15px;
-            letter-spacing: 1px;
-        }
+        .row-main { grid-column: span 1; height: 45px; }
     </style>
 </head>
 <body>
 
-<div class="calc-container">
-    <div class="branding">
-        <h1>Aethercore Interactive</h1>
-        <div class="status-led"></div>
+<div class="calculator">
+    <div class="brand-zone">
+        <h2>AETHERCORE <span>INTERACTIVE</span></h2>
+        <span class="model">PRO-991EX</span>
     </div>
 
-    <div class="screen-area">
-        <span id="history"></span>
-        <input type="text" id="display" value="0" readonly>
+    <div class="screen">
+        <div id="input-line"></div>
+        <div id="output-line">0</div>
     </div>
 
     <div class="grid">
-        <button class="fn" onclick="input('sin(')">SIN</button>
-        <button class="fn" onclick="input('cos(')">COS</button>
-        <button class="fn" onclick="input('tan(')">TAN</button>
-        <button class="fn" onclick="input('log(')">LOG</button>
-        <button class="fn" onclick="input('ln(')">LN</button>
+        <button class="special" onclick="toggleShift()" id="shift-btn">SHIFT</button>
+        <button class="special" style="color:var(--c-alpha)">ALPHA</button>
+        <button class="special">OPTN</button>
+        <button class="special" onclick="clearScreen()" style="color:var(--c-btn-accent)">AC</button>
+        <button class="special" onclick="backspace()">DEL</button>
 
-        <button class="fn" onclick="input('asin(')">ASN</button>
-        <button class="fn" onclick="input('acos(')">ACS</button>
-        <button class="fn" onclick="input('atan(')">ATN</button>
-        <button class="fn" onclick="input('sqrt(')">SQRT</button>
-        <button class="fn" onclick="input('^')">POW</button>
+        <div class="btn-wrap"><span class="shift-label">sin⁻¹</span><button class="fn" onclick="add('sin(')">sin</button></div>
+        <div class="btn-wrap"><span class="shift-label">cos⁻¹</span><button class="fn" onclick="add('cos(')">cos</button></div>
+        <div class="btn-wrap"><span class="shift-label">tan⁻¹</span><button class="fn" onclick="add('tan(')">tan</button></div>
+        <div class="btn-wrap"><span class="shift-label">abs</span><button class="fn" onclick="add('abs(')">abs</button></div>
+        <div class="btn-wrap"><span class="shift-label">logₐ</span><button class="fn" onclick="add('log(')">log</button></div>
 
-        <button class="ac" onclick="clearAll()">AC</button>
-        <button class="op" onclick="backspace()">DEL</button>
-        <button class="op" onclick="input('(')">(</button>
-        <button class="op" onclick="input(')')">)</button>
-        <button class="op" onclick="input('/')">÷</button>
+        <div class="btn-wrap"><span class="shift-label">√</span><button class="fn" onclick="add('sqrt(')">√</button></div>
+        <div class="btn-wrap"><span class="shift-label">x³</span><button class="fn" onclick="add('^2')">x²</button></div>
+        <div class="btn-wrap"><span class="shift-label">10ˣ</span><button class="fn" onclick="add('^')">xʸ</button></div>
+        <div class="btn-wrap"><span class="shift-label">eˣ</span><button class="fn" onclick="add('log(')">ln</button></div>
+        <div class="btn-wrap"><span class="shift-label">%</span><button class="fn" onclick="add('(')">(</button></div>
 
-        <button onclick="input('7')">7</button>
-        <button onclick="input('8')">8</button>
-        <button onclick="input('9')">9</button>
-        <button class="op" onclick="input('*')">×</button>
-        <button class="fn" onclick="input('PI')">π</button>
+        <button class="num row-main" onclick="add('7')">7</button>
+        <button class="num row-main" onclick="add('8')">8</button>
+        <button class="num row-main" onclick="add('9')">9</button>
+        <button class="fn row-main" onclick="add('/')">÷</button>
+        <button class="fn row-main" onclick="add(')')">)</button>
 
-        <button onclick="input('4')">4</button>
-        <button onclick="input('5')">5</button>
-        <button onclick="input('6')">6</button>
-        <button class="op" onclick="input('-')">-</button>
-        <button class="fn" onclick="input('e')">e</button>
+        <button class="num row-main" onclick="add('4')">4</button>
+        <button class="num row-main" onclick="add('5')">5</button>
+        <button class="num row-main" onclick="add('6')">6</button>
+        <button class="fn row-main" onclick="add('*')">×</button>
+        <button class="fn row-main" onclick="add('!')">x!</button>
 
-        <button onclick="input('1')">1</button>
-        <button onclick="input('2')">2</button>
-        <button onclick="input('3')">3</button>
-        <button class="op" onclick="input('+')">+</button>
-        <button class="fn" onclick="input('!')">x!</button>
+        <button class="num row-main" onclick="add('1')">1</button>
+        <button class="num row-main" onclick="add('2')">2</button>
+        <button class="num row-main" onclick="add('3')">3</button>
+        <button class="fn row-main" onclick="add('+')">+</button>
+        <button class="fn row-main" onclick="add('-')">−</button>
 
-        <button onclick="input('0')">0</button>
-        <button onclick="input('.')">.</button>
-        <button onclick="input('mod')">MOD</button>
-        <button class="exe" onclick="solve()">EXECUTE</button>
+        <button class="num row-main" onclick="add('0')">0</button>
+        <button class="num row-main" onclick="add('.')">.</button>
+        <button class="num row-main" onclick="add(' * 10^')">x10ˣ</button>
+        <button class="fn row-main" onclick="add('Ans')">Ans</button>
+        <button class="num row-main" onclick="calculate()" style="background:var(--c-btn-num);">=</button>
     </div>
-
-    <div class="mode-toggle">CORE VERSION: 4.0.2 // RADIAN MODE ACTIVE</div>
 </div>
 
 <script>
-    const display = document.getElementById('display');
-    const history = document.getElementById('history');
-    let isNewCalculation = false;
+    const inputLine = document.getElementById('input-line');
+    const outputLine = document.getElementById('output-line');
+    let lastAns = 0;
+    let shiftActive = false;
 
-    function input(val) {
-        if (display.value === '0' || isNewCalculation) {
-            display.value = val;
-            isNewCalculation = false;
-        } else {
-            display.value += val;
-        }
+    function toggleShift() {
+        shiftActive = !shiftActive;
+        document.getElementById('shift-btn').style.background = shiftActive ? '#f1c40f' : '#555';
+        document.getElementById('shift-btn').style.color = shiftActive ? '#000' : '#fff';
     }
 
-    function clearAll() {
-        display.value = '0';
-        history.innerText = '';
+    function add(val) {
+        // Simple logic for Shift functions
+        if(shiftActive) {
+            if(val === 'sin(') val = 'asin(';
+            if(val === 'cos(') val = 'acos(';
+            if(val === 'tan(') val = 'atan(';
+            shiftActive = false;
+            document.getElementById('shift-btn').style.background = '#555';
+        }
+        inputLine.innerText += val;
+    }
+
+    function clearScreen() {
+        inputLine.innerText = '';
+        outputLine.innerText = '0';
     }
 
     function backspace() {
-        display.value = display.value.slice(0, -1);
-        if (display.value === '') display.value = '0';
+        inputLine.innerText = inputLine.innerText.slice(0, -1);
     }
 
-    function solve() {
+    function calculate() {
         try {
-            let expr = display.value;
-            // Converting display symbols to mathjs symbols
-            let mathExpr = expr.replace(/×/g, '*').replace(/÷/g, '/');
+            let expression = inputLine.innerText;
+            expression = expression.replace(/Ans/g, lastAns);
             
-            const result = math.evaluate(mathExpr);
+            // Math.js evaluation
+            const result = math.evaluate(expression);
             
-            history.innerText = expr + ' =';
-            display.value = math.format(result, { precision: 14 });
-            isNewCalculation = true;
-        } catch (err) {
-            display.value = "SYNTAX ERROR";
-            setTimeout(clearAll, 1500);
+            lastAns = result;
+            outputLine.innerText = math.format(result, { precision: 10 });
+        } catch (e) {
+            outputLine.innerText = "Syntax ERROR";
         }
     }
 
-    // Keyboard support for professional use
+    // Keyboard support
     document.addEventListener('keydown', (e) => {
-        if (e.key >= '0' && e.key <= '9') input(e.key);
-        if (e.key === '+') input('+');
-        if (e.key === '-') input('-');
-        if (e.key === '*') input('*');
-        if (e.key === '/') input('/');
-        if (e.key === 'Enter') solve();
+        if (!isNaN(e.key)) add(e.key);
+        if (['+', '-', '*', '/'].includes(e.key)) add(e.key);
+        if (e.key === 'Enter') calculate();
         if (e.key === 'Backspace') backspace();
-        if (e.key === 'Escape') clearAll();
     });
 </script>
 
